@@ -25,7 +25,7 @@ chmod +x scripts/setup.sh
 ./scripts/setup.sh
 
 # Configure environment
-cp .env.example .env
+cp .env
 # Edit .env with your API keys
 
 # Run the app
