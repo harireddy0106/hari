@@ -1,0 +1,47 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  argo-ai-app:
+    build: .
+    ports:
+      - "8501:8501"  # Streamlit
+      - "8000:8000"  # API (if enabled)
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./backups:/app/backups
+      - ./config:/app/config
+    environment:
+      - PYTHONPATH=/app/src
+      - ARGO_DATABASE_URL=sqlite:////app/data/argo_chat.db
+      - ARGO_LOG_LEVEL=INFO
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8501/_stcore/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Optional: PostgreSQL for production
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=argo_ai
+      - POSTGRES_USER=argo_user
+      - POSTGRES_PASSWORD=argo_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  # Optional: Redis for caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
